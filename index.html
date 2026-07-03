@@ -41,17 +41,17 @@
     padding:24px;
   }
   #startCard{
-    width:min(560px, 100%);
+    width:min(600px, 100%);
     background:linear-gradient(180deg, var(--panel), #0d1220);
     border:1px solid var(--panel-line);
-    border-radius:6px;
-    padding:40px 28px 32px;
-    box-shadow:0 30px 80px rgba(0,0,0,.6);
+    border-radius:8px;
+    padding:36px 30px 32px;
+    box-shadow:0 30px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(255,138,30,.06);
     position:relative;
     text-align:center;
   }
   #startCard::before{
-    content:"";position:absolute;top:0;left:0;right:0;height:3px;
+    content:"";position:absolute;top:0;left:0;right:0;height:3px;border-radius:8px 8px 0 0;
     background:linear-gradient(90deg, var(--amber), var(--crimson), var(--amber));
   }
   .eyebrow{
@@ -62,7 +62,38 @@
     font-size:52px;line-height:1.1;margin:0 0 16px;color:var(--text);
   }
   h1.title span{color:var(--crimson); text-shadow: 0 0 15px rgba(209,18,27,0.6);}
-  .subtitle{color:var(--text-dim);font-size:16px;margin:0 0 32px;font-weight:600;}
+  .subtitle{color:var(--text-dim);font-size:16px;margin:0 0 24px;font-weight:600;}
+
+  /* ---------- START VIDEO PREVIEW ---------- */
+  .video-frame{
+    position:relative;width:100%;aspect-ratio:16/9;margin:0 0 26px;
+    border-radius:6px;overflow:hidden;background:#05070c;
+    border:1px solid var(--panel-line);
+    box-shadow:0 14px 34px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,138,30,.08);
+  }
+  .video-frame.empty{display:none;}
+  .video-frame video{
+    width:100%;height:100%;object-fit:cover;display:block;
+    filter:saturate(1.08) contrast(1.05);
+  }
+  .video-frame::before{
+    content:"";position:absolute;inset:0;z-index:2;pointer-events:none;
+    background:
+      linear-gradient(180deg, rgba(5,7,12,0) 55%, rgba(5,7,12,.9) 100%),
+      radial-gradient(ellipse at center, transparent 55%, rgba(5,7,12,.45) 100%);
+  }
+  .video-frame .corner{position:absolute;width:16px;height:16px;border-color:var(--amber);pointer-events:none;z-index:3;}
+  .video-frame .corner.tl{top:7px;left:7px;border-top:2px solid;border-left:2px solid;}
+  .video-frame .corner.tr{top:7px;right:7px;border-top:2px solid;border-right:2px solid;}
+  .video-frame .corner.bl{bottom:7px;left:7px;border-bottom:2px solid;border-left:2px solid;}
+  .video-frame .corner.br{bottom:7px;right:7px;border-bottom:2px solid;border-right:2px solid;}
+  .video-frame .rec-badge{
+    position:absolute;top:9px;left:12px;z-index:3;display:flex;align-items:center;gap:6px;
+    font-size:11px;letter-spacing:.14em;color:#ff5b5b;font-weight:700;text-transform:uppercase;
+    text-shadow:0 1px 3px rgba(0,0,0,.8);
+  }
+  .video-frame .rec-dot{width:6px;height:6px;border-radius:50%;background:#ff2d2d;box-shadow:0 0 6px rgba(255,45,45,.9);animation:recBlink 1.4s infinite;}
+  @keyframes recBlink{0%,100%{opacity:1;}50%{opacity:.25;}}
 
   #startBtn{
     width:100%;margin-top:10px;
@@ -209,14 +240,21 @@
 <!-- START SCREEN -->
 <div id="startScreen">
   <div id="startCard">
-    <div class="eyebrow">Аркада · Прыжок с парашютом</div>
+    <div class="eyebrow">Игра· Прыжок с парашютом</div>
     <h1 class="title">Game from <span>Lady Kate</span></h1>
     <p class="subtitle">Приземлись точно в цель любой ценой</p>
+
+    <div class="video-frame" id="videoFrame">
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+      <div class="rec-badge"><span class="rec-dot"></span>PREVIEW</div>
+      <video id="startVideo" autoplay muted loop playsinline></video>
+    </div>
 
     <button id="startBtn">НАЧАТЬ ИГРУ</button>
     
     <div class="hint">
-      Самолёт пролетает над зоной — прыгун отделяется автоматически. Двигай стрелками, в нужный момент жми <b>ПРОБЕЛ</b>, чтобы раскрыть парашют, и веди прыгуна точно в цель на земле. Промах — WASTED и рестарт. Точное попадание — салют и титры.
+      Самолёт пролетает над зоной — прыгун отделяется автоматически. Двигай стрелками, в нужный момент жми <b>ПРОБЕЛ</b>, чтобы раскрыть парашют, и веди прыгуна точно в цель на земле. Промах — WASTED и рестарт. Developer: bydimov
     </div>
   </div>
 </div>
@@ -254,9 +292,10 @@ const MODEL_URL       = 'ed1.glb'; // Ссылка на твою модель п
 const PLANE_MODEL_URL = 'ed2.glb';        // ССЫЛКА НА ТВОЮ МОДЕЛЬ САМОЛЕТА .glb (если пусто — будет дефолтный)
 const AUDIO_URL       = 'ed.mp3'; 
 const BG_URL          = ''; 
+const VIDEO_URL       = 'ed4.mp4'; // Ссылка на видео-превью для стартового экрана .mp4 (если пусто — блок скрыт)
 
 const START_BG_URL   = 'ed1.jpg'; 
-const CREDITS_BG_URL = ''; 
+const CREDITS_BG_URL = 'ed3.jpg'; 
 
 /* =========================================================
    QUOTES FOR CREDITS
@@ -292,6 +331,8 @@ const creditsScroll = document.getElementById('creditsScroll');
 const playAgainBtn = document.getElementById('playAgainBtn');
 const loadingNote = document.getElementById('loadingNote');
 const nicknameOverlay = document.getElementById('nicknameOverlay');
+const videoFrame = document.getElementById('videoFrame');
+const startVideo = document.getElementById('startVideo');
 
 if(START_BG_URL){
   startScreen.style.backgroundImage =
@@ -305,6 +346,12 @@ if(CREDITS_BG_URL){
   creditsEl.style.backgroundImage = `url('${CREDITS_BG_URL}')`;
   creditsEl.style.backgroundSize = 'cover';
   creditsEl.style.backgroundPosition = 'center';
+}
+if(VIDEO_URL){
+  startVideo.src = VIDEO_URL;
+  startVideo.play().catch(()=>{});
+} else {
+  videoFrame.classList.add('empty');
 }
 
 /* =========================================================
@@ -661,7 +708,7 @@ function showCredits(){
 
   const src = document.createElement('div');
   src.className = 'credits-source';
-  src.textContent = 'Источник: shopify.com/by/blog/motivational-quotes';
+  src.textContent = 'Источник: Love Kate';
   creditsScroll.appendChild(src);
   const spacer = document.createElement('div');
   spacer.style.height = '30vh';
